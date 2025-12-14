@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AgrriAssist-real-weather</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1><i class="fa-solid fa-cloud-sun"></i>AgriAssist Weather</h1>
+        <p>Real-time weather insights to help farmers and communities make smarter decisions.</p>
+        <p class="small" id="clock">--:--:--</p>
+      </div>
+
+      <div class="controls">
+        <input id="cityInput" placeholder="Search city (e.g. Nairobi, KE)" />
+        <button id="searchBtn" title="Search"><i class="fa fa-search"></i></button>
+        <button id="useLocation" title="Use my location"><i class="fa fa-location-crosshairs"></i></button>
+      </div>
+    </header>
+
+    <main>
+      <!-- Summary card -->
+      <section class="summary-card">
+        <div class="left">
+          <h2 class="city">--</h2>
+          <p class="date">--</p>
+          <div class="temp-row">
+            <img class="weather-icon" src="" alt="icon" />
+            <div>
+              <h3 class="temp">--°C</h3>
+              <p class="desc">--</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="right">
+          <div class="meta-grid">
+            <div class="meta">
+              <i class="fa fa-water"></i>
+              <div><span class="humidity">--%</span><small>Humidity</small></div>
+            </div>
+            <div class="meta">
+              <i class="fa fa-wind"></i>
+              <div><span class="wind">-- m/s</span><small>Wind</small></div>
+            </div>
+            <div class="meta">
+              <i class="fa fa-temperature-low"></i>
+              <div><span class="feels">--°C</span><small>Feels</small></div>
+            </div>
+            <div class="meta">
+              <i class="fa fa-compress-arrows-alt"></i>
+              <div><span class="pressure">-- hPa</span><small>Pressure</small></div>
+            </div>
+            <div class="meta">
+              <i class="fa fa-eye"></i>
+              <div><span class="visibility">--</span><small>Visibility</small></div>
+            </div>
+            <div class="meta">
+              <i class="fa fa-moon"></i>
+              <div><span class="moon">--</span><small>Moon phase</small></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 🌤️ 7-DAY FORECAST -->
+      <section class="week-cards">
+        <h3>7-Day Forecast</h3>
+        <p>Stay informed with accurate daily and 7-day forecasts.</p>
+        <div id="daysContainer" class="days-container">
+          <!-- JS will insert cards dynamically -->
+        </div>
+      </section>
+
+      <section class="details-row">
+        <div class="card uv-card">
+          <h4><i class="fa fa-sun"></i> UV Index</h4>
+          <p class="uv-value" id="uvValue">--</p>
+          <div class="uv-bar">
+            <div class="uv-fill" id="uvFill"></div>
+          </div>
+          <p class="uv-label" id="uvLabel">--</p>
+        </div>
+
+        <div class="card wind-card">
+          <h4><i class="fa fa-compass"></i> Wind</h4>
+          <canvas id="windCanvas" width="220" height="220"></canvas>
+          <p class="wind-info"><span id="windSpeed">-- m/s</span> • <span id="windDeg">--°</span></p>
+        </div>
+
+        <div class="card pressure-card">
+          <h4><i class="fa fa-gauge-high"></i> Pressure</h4>
+          <canvas id="pressureCanvas" width="260" height="140"></canvas>
+          <p class="pressure-info"><span id="pressureVal">-- hPa</span></p>
+        </div>
+      </section>
+
+      <section class="extra-row">
+        <!-- Dew Point -->
+        <div class="card dew-card">
+          <h4><i class="fa fa-thermometer-half"></i> Dew Point</h4>
+          <p class="dew-value" id="dewVal">--°C</p>
+        </div>
+
+        <!-- Sun card (with path) -->
+        <div class="card sun-card large">
+          <h4><i class="fa fa-sun"></i> Sun</h4>
+          <div class="sun-path-wrap">
+            <svg id="sunSvg" viewBox="0 0 600 140" preserveAspectRatio="xMidYMid meet" class="sun-svg">
+              <path id="sunPath" d="M20,120 C150,20 450,20 580,120" stroke="rgba(255,255,255,0.12)" fill="none" stroke-width="2"/>
+              <circle id="sunDot" r="10" fill="#FFD54F" stroke="#fff" stroke-width="2" />
+            </svg>
+          </div>
+          <div class="sun-times">
+            <div><small>Sunrise</small><div id="sunrise">--</div></div>
+            <div><small>Sunset</small><div id="sunset">--</div></div>
+          </div>
+        </div>
+
+        <!-- Moon card (with path) -->
+        <div class="card moon-card large">
+          <h4><i class="fa fa-moon"></i> Moon</h4>
+          <div class="sun-path-wrap">
+            <svg id="moonSvg" viewBox="0 0 600 140" preserveAspectRatio="xMidYMid meet" class="sun-svg">
+              <path id="moonPath" d="M20,120 C150,140 450,40 580,120" stroke="rgba(255,255,255,0.08)" fill="none" stroke-width="2"/>
+              <circle id="moonDot" r="12" fill="#cdd6e0" stroke="#fff" stroke-width="2" />
+            </svg>
+          </div>
+          <div class="sun-times">
+            <div><small>Moonrise</small><div id="moonrise">--</div></div>
+            <div><small>Moonset</small><div id="moonset">--</div></div>
+          </div>
+        </div>
+
+        <!-- Humidity -->
+        <div class="card humidity-card">
+          <h4><i class="fa-solid fa-droplet"></i> Humidity</h4>
+          <p id="humidityValue">--%</p>
+          <div class="bar">
+            <div id="humidityFill"></div>
+          </div>
+        </div>
+
+        <!-- Air Quality Index -->
+        <div class="card aqi-card">
+          <h4><i class="fa-solid fa-smog"></i> Air Quality Index (AQI)</h4>
+          <p id="aqiVal">--</p>
+          <div class="bar">
+            <div id="aqiFill"></div>
+          </div>
+          <p id="aqiLabel">--</p>
+        </div>
+      </section>
+
+      <!-- ========== ACTIVITY (Running/Gardening/Cycling) ========== -->
+      <section id="running-section" class="info-section">
+        <h2>🏃‍♂️ Activity Forecast</h2>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <label for="activitySelect">Choose activity:</label>
+          <select id="activitySelect">
+            <option value="running">Running</option>
+            <option value="gardening">Gardening</option>
+            <option value="cycling">Cycling</option>
+          </select>
+          <button id="checkActivity">Check</button>
+          <small style="opacity:.8">(Uses current conditions + AQI)</small>
+        </div>
+        <p id="runningMessage">Checking conditions...</p>
+      </section>
+
+      <!-- ========== CLIMATE INSIGHT VIDEOS SECTION ========== -->
+      <section id="videos-section" class="info-section">
+        <h2>🌍 Climate Insight Videos</h2>
+        <div class="video-grid">
+          <div class="video-card">
+            <video src="videos/4107094-sd_640_352_30fps.mp4" controls></video>
+            <p>Massive floods caused by heavy rainfall — understand how weather patterns lead to overflow.</p>
+          </div>
+          <div class="video-card">
+            <video src="videos/5358448-uhd_2562_1440_25fps.mp4" controls></video>
+            <p>Exploring severe droughts and how they impact food production and water supplies.</p>
+          </div>
+          <div class="video-card">
+            <video src="videos/6108100-hd_1920_1080_25fps.mp4" controls></video>
+            <p>See how strong winds affect structures and what precautions to take.</p>
+          </div>
+          <div class="video-card">
+            <video src="videos/3192166-uhd_3840_2160_25fps.mp4" controls></video>
+            <p>Understanding the relationship between tectonic movements and earthquakes.</p>
+          </div>
+          <div class="video-card">
+            <video src="videos/4136677-uhd_3840_2160_30fps.mp4" controls></video>
+            <p>Learn about global warming and how weather systems are changing worldwide.</p>
+          </div>
+          <div class="video-card">
+            <video src="videos/colorado.mp4" controls></video>
+            <p>Hundreds ordered to flee Colorado Flooding.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+  <footer class="footer">
+  <p>AgriAssist Weather — Bringing you reliable forecasts since 2025.</p>
+  <p>Developed by Job | Powered by <a href="https://www.weatherapi.com/" target="_blank">WeatherAPI.com</a></p>
+  <p>Designed to deliver accurate real-time and weekly weather forecasts — including sunrise, sunset, moon phases, and more.</p>
+</footer>
+
+  </div>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
